@@ -2,6 +2,8 @@ package io.task.scheduler.config;
 
 import io.task.scheduler.SchedulerService;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +23,8 @@ import java.util.concurrent.Executors;
 public class SchedulerConfiguration implements SchedulingConfigurer {
 
     private String cycleInterval;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Bean
     public Executor taskExecutor() {
@@ -45,10 +49,10 @@ public class SchedulerConfiguration implements SchedulingConfigurer {
         try {
             cycle = Long.parseLong(cycleInterval);
         } catch (IllegalArgumentException e) {
-            System.out.println("Illegal cycle-interval value");
-            System.out.println("Please enter a number value for cycle-interval in milliseconds");
-            System.out.println("The value is set back to default for now");
-            cycle = 60000L;
+
+            logger.error("Illegal cycle-interval value");
+            logger.error("Please enter a number value for cycle-interval in milliseconds");
+            throw new IllegalArgumentException("Illegal cycle-interval value");
         }
         return cycle;
     }

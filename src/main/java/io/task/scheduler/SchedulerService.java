@@ -3,6 +3,8 @@ package io.task.scheduler;
 
 import io.task.scheduler.domain.BitWeekDays;
 import io.task.scheduler.domain.ScheduledTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ import java.util.List;
 @Service
 public class SchedulerService implements Runnable {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public void run() {
         scheduledTaskExecution();
@@ -28,6 +32,7 @@ public class SchedulerService implements Runnable {
         LocalDateTime timeInLagos = ZonedDateTime.now().withZoneSameInstant(lagosId).toLocalDateTime();
         String pathToCSV = "input/schedule.csv";
         List<ScheduledTime> scheduledTimes = loadScheduleFromCSV(pathToCSV);
+
         int tasksExecuted = 0;
 
         for (ScheduledTime scheduledTime : scheduledTimes) {
@@ -35,12 +40,13 @@ public class SchedulerService implements Runnable {
             if (executeTaskTime.getHour() == timeInLagos.getHour()
                     && executeTaskTime.getMinute() == timeInLagos.getMinute()
                     && scheduledTime.getDays().contains(timeInLagos.getDayOfWeek())) {
-                System.out.println("executing scheduled task");
+                logger.info("executing scheduled task");
                 tasksExecuted += 1;
             }
         }
         if (tasksExecuted == 0) {
-            System.out.println("nothing to execute");
+            logger.info("nothing to execute");
+
         }
 
     }
@@ -85,7 +91,8 @@ public class SchedulerService implements Runnable {
             return new ScheduledTime(time, days);
 
         } catch (IllegalArgumentException | DateTimeParseException e) {
-            System.out.println("Illegal input values at line " + lineNr);
+            logger.warn("Illegal input values at line " + lineNr);
+            logger.warn("Line skipped");
             return null;
         }
     }
