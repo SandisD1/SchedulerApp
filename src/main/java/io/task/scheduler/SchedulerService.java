@@ -1,7 +1,6 @@
 package io.task.scheduler;
 
 
-import io.task.scheduler.domain.BitWeekDays;
 import io.task.scheduler.domain.ScheduledTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,7 @@ import java.util.List;
 @Service
 public class SchedulerService implements Runnable {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void run() {
@@ -86,7 +85,7 @@ public class SchedulerService implements Runnable {
                 bitMask = Integer.parseInt(daysInput);
             }
 
-            List<DayOfWeek> days = BitWeekDays.getDaysOfWeekFromBitValues(bitMask);
+            List<DayOfWeek> days = getDaysOfWeekFromBitValues(bitMask);
 
             return new ScheduledTime(time, days);
 
@@ -95,6 +94,26 @@ public class SchedulerService implements Runnable {
             logger.warn("Line skipped");
             return null;
         }
+    }
+
+    public List<DayOfWeek> getDaysOfWeekFromBitValues(int originalBitMask) {
+        List<DayOfWeek> returnValues = new ArrayList<>();
+        if (originalBitMask > 127) {
+            throw new IllegalArgumentException();
+        }
+        int bitMask = originalBitMask;
+
+        for (DayOfWeek day : DayOfWeek.values()) {
+            int bitVal = 1 << (day.getValue() - 1);
+            if ((bitVal & bitMask) == bitVal) {
+                bitMask -= bitVal;
+
+                returnValues.add(day);
+            }
+
+        }
+
+        return returnValues;
     }
 
 }
